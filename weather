@@ -1,0 +1,31 @@
+# Install and load packages
+if (!require("httr")) install.packages("httr")
+if (!require("jsonlite")) install.packages("jsonlite")
+if (!require("ggplot2")) install.packages("ggplot2")
+
+library(httr)
+library(jsonlite)
+library(ggplot2)
+
+# Step 1: Fetch weather data (example: OpenWeatherMap API)
+api_key <- "your_api_key"  # Replace with your OpenWeatherMap API key
+city <- "London"
+url <- paste0("http://api.openweathermap.org/data/2.5/forecast?q=", city, "&appid=", api_key)
+
+response <- GET(url)
+weather_data <- content(response, "text") %>% fromJSON()
+
+# Extract relevant information
+forecast <- weather_data$list
+df <- data.frame(
+  date = as.POSIXct(forecast$dt, origin = "1970-01-01"),
+  temperature = forecast$main$temp - 273.15,  # Convert Kelvin to Celsius
+  weather = forecast$weather[[1]]$main
+)
+
+# Step 2: Visualize temperature trends
+ggplot(df, aes(x = date, y = temperature)) +
+  geom_line(color = "blue") +
+  labs(title = paste("Temperature Forecast for", city), x = "Date", y = "Temperature (°C)") +
+  theme_minimal()
+
