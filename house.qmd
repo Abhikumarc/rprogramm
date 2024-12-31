@@ -1,0 +1,34 @@
+# Load necessary libraries
+install.packages("caret")
+install.packages("randomForest")
+library(caret)
+library(randomForest)
+
+# Load a dataset (e.g., Ames Housing Dataset)
+data <- read.csv("https://raw.githubusercontent.com/jakevdp/PythonDataScienceHandbook/master/notebooks/data/ames.csv")
+
+# Data Preprocessing: Remove NAs, factorize categorical variables
+data_clean <- na.omit(data)
+data_clean$Overall.Qual <- as.factor(data_clean$Overall.Qual)
+
+# Split the data into training and testing sets
+set.seed(123)
+trainIndex <- createDataPartition(data_clean$SalePrice, p = 0.8, list = FALSE)
+train_data <- data_clean[trainIndex, ]
+test_data <- data_clean[-trainIndex, ]
+
+# Train a random forest model
+model <- randomForest(SalePrice ~ ., data = train_data)
+
+# Predict house prices on the test set
+predictions <- predict(model, test_data)
+
+# Evaluate model performance (RMSE)
+rmse <- sqrt(mean((predictions - test_data$SalePrice)^2))
+print(paste("RMSE: ", rmse))
+
+# Plot the actual vs predicted prices
+ggplot() +
+  geom_point(aes(x = test_data$SalePrice, y = predictions)) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Actual Prices", y = "Predicted Prices", title = "Actual vs Predicted House Prices")
